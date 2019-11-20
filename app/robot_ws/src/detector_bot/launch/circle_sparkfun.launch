@@ -1,0 +1,3 @@
+<launch>
+  <node name="circle" pkg="detector_bot" type="circle_sparkfun.py" />
+</launch>

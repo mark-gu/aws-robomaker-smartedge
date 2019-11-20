@@ -1,0 +1,1 @@
+SUBSYSTEM=="i2c-dev", KERNEL=="i2c-1", OWNER="ggc_user", GROUP="i2c", MODE="0660"

@@ -1,0 +1,4 @@
+<launch>
+  <node name="move" pkg="detector_bot" type="move.py" />
+  <node name="circle" pkg="detector_bot" type="circle.py" />
+</launch>

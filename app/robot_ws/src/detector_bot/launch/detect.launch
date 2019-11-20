@@ -1,0 +1,5 @@
+<launch>
+  <node name="camera" pkg="detector_bot" type="camera.py" />
+  <node name="move" pkg="detector_bot" type="move.py" />
+  <node name="detect" pkg="detector_bot" type="detect.py" />
+</launch>
