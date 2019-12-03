@@ -62,6 +62,7 @@ catkin_install_python(PROGRAMS
   nodes/circle.py
   nodes/detect.py
   nodes/display.py
+  nodes/dino_finder
   nodes/move_sparkfun.py
   nodes/move.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

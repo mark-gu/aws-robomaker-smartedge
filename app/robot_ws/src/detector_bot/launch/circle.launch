@@ -1,4 +1,8 @@
 <launch>
+  <param name="motor_controller" value="$(optenv MOTOR_CONTROLLER adafruit)" />
+  <param name="i2c_bus" type="int" value="$(optenv I2C_BUS 1)" />
+  <param name="max_pwm" value="$(optenv MAX_PWM 115.0)" />
+
   <arg name="aws_region" default="us-west-2" />
   <arg name="output" default="log" />
 
