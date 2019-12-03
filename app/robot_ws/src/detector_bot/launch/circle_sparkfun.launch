@@ -1,3 +1,14 @@
 <launch>
-  <node name="circle" pkg="detector_bot" type="circle_sparkfun.py" />
+  <arg name="aws_region" default="us-west-2" />
+  <arg name="node_start_delay" default="5.0" />
+  <arg name="output" default="log" />
+
+  <include file="$(find detector_bot)/launch/aws_cloudwatch_logger.launch">
+    <arg name="config_file" value="$(find detector_bot)/config/aws_cloudwatch_logs_config.yml" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="aws_region" value="$(arg aws_region)" />
+    <arg name="log_stream_name" default="SparkFun" />
+  </include>
+
+  <node name="circle_sparkfun" pkg="detector_bot" type="circle_sparkfun.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " output="$(arg output)" />
 </launch>

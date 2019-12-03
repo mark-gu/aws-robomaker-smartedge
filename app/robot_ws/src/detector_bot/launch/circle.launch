@@ -1,4 +1,14 @@
 <launch>
-  <node name="move" pkg="detector_bot" type="move.py" />
-  <node name="circle" pkg="detector_bot" type="circle.py" />
+  <arg name="aws_region" default="us-west-2" />
+  <arg name="output" default="log" />
+
+  <include file="$(find detector_bot)/launch/aws_cloudwatch_logger.launch">
+    <arg name="config_file" value="$(find detector_bot)/config/aws_cloudwatch_logs_config.yml" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="aws_region" value="$(arg aws_region)" />
+    <arg name="log_stream_name" default="Waveshare" />
+  </include>
+
+  <node name="move" pkg="detector_bot" type="move.py" output="$(arg output)" />
+  <node name="circle" pkg="detector_bot" type="circle.py" output="$(arg output)" />
 </launch>

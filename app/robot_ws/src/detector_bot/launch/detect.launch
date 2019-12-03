@@ -1,5 +1,15 @@
 <launch>
-  <node name="camera" pkg="detector_bot" type="camera.py" />
-  <node name="move" pkg="detector_bot" type="move.py" />
-  <node name="detect" pkg="detector_bot" type="detect.py" />
+  <arg name="aws_region" default="us-west-2" />
+  <arg name="output" default="log" />
+
+  <include file="$(find detector_bot)/launch/aws_cloudwatch_logger.launch">
+    <arg name="config_file" value="$(find detector_bot)/config/aws_cloudwatch_logs_config.yml" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="aws_region" value="$(arg aws_region)" />
+    <arg name="log_stream_name" default="Common" />
+  </include>
+
+  <node name="camera" pkg="detector_bot" type="camera.py" output="$(arg output)" />
+<!--  <node name="move" pkg="detector_bot" type="move.py" output="$(arg output)" /> -->
+  <node name="detect" pkg="detector_bot" type="detect.py" output="$(arg output)" />
 </launch>

@@ -1,18 +1,5 @@
 # AWS RoboMaker Builder Session - Smart Edge
 
-
-## Preparation
-
-### Instructor Preparation
-
-1. Create 10 environments and 10 IAM users, and share the environments with users.
-2. Deploy RoboMaker-Common and CertGenerator
-3. Setup WiFi connection for all robots.
-
- For each robot, print robot name, IP address on paper.
- 1. laminate iam user name , robot name, IP, and leave the password field empty, so we can wipe and write on it before each session.
-
-
 ## Instructions
 
 ### Get Ready
@@ -31,19 +18,13 @@
     - Set *Stack name* to *RoboMaker-Common*
     - Save the output values for later use
 
-    **Note**: This step may have already been completed by your instructor.
-
 2. Navigate to **S3**, and click into the bucket deployed in the previous step.
     - Create a new directory named *utils*
     - Upload *cert_generator.zip* into the *utils* directory
 
-    **Note**: This step may have already been completed by your instructor.
-
 3. Navigate to **CloudFormation** and deploy [02-robomaker-cert_generator.yml](infrastructure/robomaker/templates/02-robomaker-cert_generator.yml).
     - Set *Stack name* to *RoboMaker-CertGenerator*
     - Set other parameters appropriately
-
-    **Note**: This step may have already been completed by your instructor.
 
 4. Navigate to **CloudFormation** and deploy [03-robomaker-fleet.yml](infrastructure/robomaker/templates/03-robomaker-fleet.yml).
     - Set *Stack name* to *RoboMaker-Fleet-Jetbots*
@@ -60,7 +41,7 @@
 
 1. Power up the robot and wait for it to boot up.
 
-2. **[SparkFun Jetbot Only]** Copy [resources/90-i2c.rules](resources/90-i2c.rules) to `/path/to/robot_files/` also.
+2. Copy [resources/90-i2c.rules](resources/90-i2c.rules) to `/path/to/robot_files/` also.
 
 3. Copy all the required files onto the robot.
 
@@ -90,7 +71,7 @@
     # Keep the SSH connection alive and continue to the next step...
     ```
 
-5. **[SparkFun Jetbot Only]** Update robot devices
+5. Update robot devices
 
     ```bash
     # Change the owner of the file
@@ -137,8 +118,6 @@
    - Set *Pre-installed software suite* to *Melodic*
    - Set other fields appropriately
 
-    **Note**: This step may have already been completed by your instructor.
-
 3. Log into the **Cloud9 development environment** once it's ready.
 
 4. Clone this repository in Cloud9.
@@ -151,13 +130,11 @@
     git clone https://github.com/mark-gu/aws-robomaker-smartedge.git SmartEdge
     ```
 
-    **Note**: This step may have already been completed by your instructor.
-
 5. Install application dependencies and build a cross-compilation container.
 
     ```bash
     # Change to the scripts directory
-    cd ~/environment/SmartEdge/app/scripts
+    cd ~/environment/SmartEdge/app/assets/scripts
 
     # Add ROS dependencies
     sudo cp -a deps/* /etc/ros/rosdep/sources.list.d/
@@ -176,8 +153,6 @@
     rosdep fix-permissions
     sudo -u ubuntu rosdep update
     ```
-
-    **Note**: This step may have already been completed by your instructor.
 
 6. Cross-compile the application.
 
@@ -203,8 +178,6 @@
     (docker)$ exit # or Ctrl-d
     ```
 
-    **Note**: This step may have already been completed by your instructor.
-
 7. Copy the bundled application to S3.
 
     ```bash
@@ -217,23 +190,76 @@
     aws s3 cp ./robot_ws/arm64_bundle/output.tar s3://<bucket-name>/apps/detector_bot_<seq-no>.arm64.tar
     ```
 
-    **Note**: This step may have already been completed by your instructor.
+### Deploy the Machine Learning Model
+
+1. Zip the model and upload it to S3.
+
+    ```bash
+    cd ~/environment/models
+    zip ../models.zip *
+
+    aws s3 cp ~environment/models.zip s3://<bucket-name>/models.zip
+    ```
+
+2. Navigate to **Lambda**, and click on **Create function**.
+    - Set *Function name* to a value of your choice
+    - Set *Runtime* to *Python 2.7*
+    - Create a new role, or using an existing one
+    - After the new function is created, copy the content of the file [infrastructure/robomaker/model_sync/index.py](infrastructure/robomaker/model_sync/index.py) into the Function code area.
+    - Save and publish a new version
+
+3. Navigate to **IoT Greengarss**.
+
+4. In the left pane, click on **Greengrass**, then **Groups**, then the group for your robot.
+
+5. In the left pane of the Greengrass Group view, click on **Lambdas**, then **Add your first Lambda**, then **Use existing Lambda**.
+
+6. Once the Lambda function is added, select **Edit configuration** in the upper right corner of the Lambda function.
+    - Under *Lambda lifecycle*, select *Make this function long-lived and keep it running indefinitely*
+
+7. In the Greengrass > Groups, click on **Resources**
+
+8. Click on **Machine Learning**, then **Add a machine learning resource**
+    - Set Resource name to a value of your choice
+    - Set Model Source to *Upload a model in S3 (including models optimized through Deep Learning Compiler)*
+    - Locate the models.zip in the S3 bucket
+    - Set *Local path* to */trained_models*
+    - Set *Identify resource owner and set access permissions* to *No OS group*
+    - Link the Lambda function and the resource, and set permission to *Read and write access*
+
+9. In the Greengrass > Groups, click on **Resources**.
+
+10. Click on **Local**, then **Add local resource**.
+    - Set Resource name to a value of your choice
+    - Set Resource type to *Volume*
+    - Set Source path to */tmp*
+    - Set Destination path to */tmp*
+    - Set Group owner file access permission to *Automatically add OS - group permissions of the Linux group that owns the resource*
+    - Link the Lambda function and the resource, and set permission to *Read and write access*
+
+11. Navigate to **IAM** and allow Greengrass_ServiceRole to access S3.
+
+12. Navigate to **IoT Greengrass**, then **Groups**. Click on **Actions** > **Deploy**. After the deployment completes successfully, you should be able to see /tmp/trained_models direction on the robot.
 
 ### Deploy the ROS Application
+
+1. In the AWS Management Console, navigate to **RoboMaker**.
+
+2. In the left pane, choose **Robot Applications**, and then choose **Create application**.
+
+3. In the left page, choose **Deployments**, and then choose **Create deployment**.
+
+4. If the deployment is successful, the robot will spin for 10 seconds and stop.
 
 ### Clean up
 
 1. Remove certs, config
 2. Delete all Robot and Fleet Stacks.
 3. Delete files under S3 bucket/robots/ directory.
-4. Deploy empty ROS app to bot???
 
 ## User Info Card
 
 AWS Management Console: **https://aws-robots.signin.aws.amazon.com/console**
-
-IAM user name:              **User1**  
-IAM user password:          
 
 Jetbot name:                **Jetbot1**  
 Jetbot IP address:          
